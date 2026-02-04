@@ -1,0 +1,14 @@
+paths:
+  data_root: "data"
+  outputs_root: "outputs"
+
+data:
+  # 你可以把“最终确定的一份数据”放这里（先留空，下一步再填）
+  ia_input: ""
+  ip_input: ""
+
+outputs:
+  figures: "outputs/figures"
+  tables: "outputs/tables"
+  models: "outputs/models"
+  cache: "outputs/cache"

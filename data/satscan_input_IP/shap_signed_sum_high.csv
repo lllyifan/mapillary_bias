@@ -1,0 +1,8 @@
+,indicator_sex_female,indicator_Ethnic_nonwhite,indicator_education_noqualification,indicator_age_elder,indicator_age_children,indicator_NS-SeC_unemployed,indicator_NS-SeC_students
+indicator_sex_female,1.097887,-1.991263,0.367189,-0.862011,0.811795,0.511018,4.089935
+indicator_Ethnic_nonwhite,-1.991263,36.593226,-1.907988,-22.549997,1.730100,-26.314057,25.266562
+indicator_education_noqualification,0.367189,-1.907988,0.536990,0.341891,0.474379,0.131143,-0.125082
+indicator_age_elder,-0.862011,-22.549997,0.341891,5.394725,1.388009,-1.892890,13.494219
+indicator_age_children,0.811795,1.730100,0.474379,1.388009,-16.141963,0.680151,4.994938
+indicator_NS-SeC_unemployed,0.511018,-26.314057,0.131143,-1.892890,0.680151,51.948875,2.023275
+indicator_NS-SeC_students,4.089935,25.266562,-0.125082,13.494219,4.994938,2.023275,-61.646495

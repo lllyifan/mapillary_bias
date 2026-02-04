@@ -1,0 +1,22 @@
+# core numeric & data
+numpy
+pandas
+
+# geospatial stack
+geopandas
+shapely
+pyproj
+fiona
+libpysal
+esda
+mapclassify
+
+# modelling & stats
+scikit-learn
+statsmodels
+joblib
+shap
+
+# plotting
+matplotlib
+seaborn

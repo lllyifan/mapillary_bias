@@ -1,0 +1,7 @@
+script,op,lineno,resolved_path
+scripts/00_list_paths.py,read,31,scripts/w
+tools/io_scan.py,read,433,tools/w
+tools/io_scan.py,read,445,tools/w
+tools/repo_audit.py,read,255,tools/w
+tools/repo_audit.py,read,263,tools/w
+tools/repo_audit.py,read,271,tools/w

@@ -1,0 +1,140 @@
+{
+  "label": "high",
+  "target_class": 0,
+  "created_at": "2026-01-31 22:09:31",
+  "features": {
+    "indicator_sex_female": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\grid_indicator_sex_female_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\ice_indicator_sex_female_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\ice_summary_indicator_sex_female_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\slopes_indicator_sex_female_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\slopes_indicator_sex_female_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\ICE_indicator_sex_female_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_sex_female\\SpatialICE_indicator_sex_female_high.png",
+      "stats": {
+        "grid_min": 0.353,
+        "grid_max": 0.697,
+        "avg_curve_min": 0.2254371591534856,
+        "avg_curve_max": 0.3651495267356017,
+        "slope_mean": -0.3595251920692083,
+        "slope_std": 0.26359339997254977,
+        "slope_min": -1.4459473762424706,
+        "slope_max": 0.6770337527178175
+      }
+    },
+    "indicator_Ethnic_nonwhite": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\grid_indicator_Ethnic_nonwhite_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\ice_indicator_Ethnic_nonwhite_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\ice_summary_indicator_Ethnic_nonwhite_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\slopes_indicator_Ethnic_nonwhite_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\slopes_indicator_Ethnic_nonwhite_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\ICE_indicator_Ethnic_nonwhite_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_Ethnic_nonwhite\\SpatialICE_indicator_Ethnic_nonwhite_high.png",
+      "stats": {
+        "grid_min": 0.001,
+        "grid_max": 0.978,
+        "avg_curve_min": 0.10462214779560643,
+        "avg_curve_max": 0.365547883241848,
+        "slope_mean": -0.2670683064956412,
+        "slope_std": 0.14372034442170312,
+        "slope_min": -0.7085422503966734,
+        "slope_max": 0.12079653992429965
+      }
+    },
+    "indicator_education_noqualification": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\grid_indicator_education_noqualification_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\ice_indicator_education_noqualification_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\ice_summary_indicator_education_noqualification_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\slopes_indicator_education_noqualification_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\slopes_indicator_education_noqualification_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\ICE_indicator_education_noqualification_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_education_noqualification\\SpatialICE_indicator_education_noqualification_high.png",
+      "stats": {
+        "grid_min": 0.014,
+        "grid_max": 0.408,
+        "avg_curve_min": 0.22847800775734672,
+        "avg_curve_max": 0.25572046676274046,
+        "slope_mean": -0.006290786564091627,
+        "slope_std": 0.20202894447501882,
+        "slope_min": -0.9600874829101081,
+        "slope_max": 0.5488713126387161
+      }
+    },
+    "indicator_age_elder": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\grid_indicator_age_elder_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\ice_indicator_age_elder_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\ice_summary_indicator_age_elder_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\slopes_indicator_age_elder_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\slopes_indicator_age_elder_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\ICE_indicator_age_elder_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_elder\\SpatialICE_indicator_age_elder_high.png",
+      "stats": {
+        "grid_min": 0.001,
+        "grid_max": 0.581,
+        "avg_curve_min": 0.2188985299207067,
+        "avg_curve_max": 0.27513697891032746,
+        "slope_mean": -0.009448535572350437,
+        "slope_std": 0.1626490852661077,
+        "slope_min": -0.5673459593265356,
+        "slope_max": 0.544328146121699
+      }
+    },
+    "indicator_age_children": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\grid_indicator_age_children_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\ice_indicator_age_children_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\ice_summary_indicator_age_children_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\slopes_indicator_age_children_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\slopes_indicator_age_children_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\ICE_indicator_age_children_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_age_children\\SpatialICE_indicator_age_children_high.png",
+      "stats": {
+        "grid_min": 0.01,
+        "grid_max": 0.447,
+        "avg_curve_min": 0.23815650834006302,
+        "avg_curve_max": 0.2920359627703108,
+        "slope_mean": 0.02021641227676903,
+        "slope_std": 0.15923330709164077,
+        "slope_min": -0.4625251912744155,
+        "slope_max": 1.1010703929113486
+      }
+    },
+    "indicator_NS-SeC_unemployed": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\grid_indicator_NS-SeC_unemployed_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\ice_indicator_NS-SeC_unemployed_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\ice_summary_indicator_NS-SeC_unemployed_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\slopes_indicator_NS-SeC_unemployed_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\slopes_indicator_NS-SeC_unemployed_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\ICE_indicator_NS-SeC_unemployed_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_unemployed\\SpatialICE_indicator_NS-SeC_unemployed_high.png",
+      "stats": {
+        "grid_min": 0.011,
+        "grid_max": 0.303,
+        "avg_curve_min": 0.09710466700650132,
+        "avg_curve_max": 0.4567995936561217,
+        "slope_mean": -1.2223992802672348,
+        "slope_std": 0.35839522925312983,
+        "slope_min": -2.244676566230981,
+        "slope_max": 0.04278223689985881
+      }
+    },
+    "indicator_NS-SeC_students": {
+      "grid_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\grid_indicator_NS-SeC_students_high.csv",
+      "ice_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\ice_indicator_NS-SeC_students_high.npy",
+      "ice_summary_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\ice_summary_indicator_NS-SeC_students_high.csv",
+      "slopes_csv": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\slopes_indicator_NS-SeC_students_high.csv",
+      "slopes_npy": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\slopes_indicator_NS-SeC_students_high.npy",
+      "fig_ice_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\ICE_indicator_NS-SeC_students_high.png",
+      "fig_spatial_png": "D:\\0RQ1data\\correct\\work\\data\\satscan_input_IP\\ICE_manual_output\\high\\indicator_NS-SeC_students\\SpatialICE_indicator_NS-SeC_students_high.png",
+      "stats": {
+        "grid_min": 0.011,
+        "grid_max": 0.837,
+        "avg_curve_min": 0.22551940123722963,
+        "avg_curve_max": 0.3651888082319235,
+        "slope_mean": 0.008616228354814575,
+        "slope_std": 0.1408392930226817,
+        "slope_min": -0.44444003476883387,
+        "slope_max": 0.32883792950751706
+      }
+    }
+  }
+}
