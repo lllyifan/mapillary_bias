@@ -10,9 +10,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
-# =========================================================
-# 0) Paths (relative; repo-friendly) + output
-# =========================================================
+
+# Paths
+
 ROOT = Path(__file__).resolve().parents[1]
 
 FILE_SIGNED = (
@@ -26,9 +26,9 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUT_DIR / "fig_7_A_left.pdf"
 OUT_SVG = OUT_DIR / "fig_7_A_left.svg"
 
-# =========================================================
-# 1) Style: default font + all black (no proprietary font)
-# =========================================================
+
+# Style
+
 mpl.rcParams.update({
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
@@ -50,12 +50,12 @@ mpl.rcParams.update({
     "ytick.labelsize": 8,
 })
 
-# seaborn base style (white background)
+
 sns.set_style("white")
 
-# =========================================================
-# 2) Short names & order
-# =========================================================
+
+# Short names & order
+
 feature_name_map = {
     "indicator_sex_female":                "FP",
     "indicator_Ethnic_nonwhite":           "NWP",
@@ -67,9 +67,9 @@ feature_name_map = {
 }
 short_order = ["FP", "NWP", "NQP", "EP", "CP", "UEP", "SP"]
 
-# =========================================================
-# 3) Read matrix + rename + enforce order
-# =========================================================
+
+# Read matrix + rename + enforce order
+
 df_total = pd.read_csv(FILE_SIGNED, index_col=0)
 
 # Your CSV may already use long names; robust rename both axes
@@ -88,18 +88,18 @@ df_total = df_total.loc[short_order, short_order].astype(float)
 mask = np.triu(np.ones_like(df_total, dtype=bool), k=0)
 np.fill_diagonal(df_total.values, np.nan)
 
-# =========================================================
-# 4) Custom colormap (green-white-purple), centered at 0
-# =========================================================
+
+# Custom colormap
+
 custom_cmap = mcolors.LinearSegmentedColormap.from_list(
     "custom_shap_cmap",
     [(0.0, "#7cc0a2"), (0.5, "#FFFFFF"), (1.0, "#9294bb")],
     N=256
 )
 
-# =========================================================
-# 5) Plot (journal size)
-# =========================================================
+
+# Plot
+
 cm = 1 / 2.54
 fig, ax = plt.subplots(figsize=(8 * cm, 8 * cm))
 
@@ -115,17 +115,15 @@ hm = sns.heatmap(
     cbar_kws={
         "label": "Total SHAP Interaction Value",
         "shrink": 0.85,
-        "aspect": 40,          # smaller -> thicker; larger -> thinner
+        "aspect": 40,          
         "orientation": "horizontal",
-        "pad": 0.10            # smaller -> closer to main plot
+        "pad": 0.10            
     },
     ax=ax
 )
 
-# =========================================================
-# 6) Force all text black; keep default font
-# =========================================================
-# Cell annotations
+
+
 for t in ax.texts:
     t.set_color("black")
 
@@ -133,7 +131,7 @@ for t in ax.texts:
 ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", color="black")
 ax.set_yticklabels(ax.get_yticklabels(), rotation=0, color="black")
 
-# Title (remove if not needed)
+# Title
 ax.set_title("Total SHAP Interaction Matrix", fontsize=8, color="black", pad=4)
 
 # Axes spines
@@ -152,18 +150,17 @@ for s in cbar.ax.spines.values():
     s.set_linewidth(0.5)
     s.set_edgecolor("black")
 
-# =========================================================
-# 7) Optional diagonal dashed guide line (visual only)
-# =========================================================
+
+
 n = len(short_order)
 for i in range(n):
     ax.plot([i, i + 1], [i, i + 1], color="black", lw=0.7, linestyle="--", zorder=10)
 
 plt.tight_layout()
 
-# =========================================================
-# 8) Save: PDF + SVG
-# =========================================================
+
+#  Save
+
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 

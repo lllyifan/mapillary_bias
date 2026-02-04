@@ -13,19 +13,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 
-# -----------------------------
-# Patterns (simple & robust)
-# -----------------------------
-# We deliberately keep it regex-based (not AST) because you often use f-strings and Path objects.
-
 IO_PATTERNS = [
-    # Reads
     ("read", r"\bpd\.read_csv\(\s*([^\)]+?)\s*\)"),
     ("read", r"\bgpd\.read_file\(\s*([^\)]+?)\s*\)"),
     ("read", r"\bnp\.load\(\s*([^\)]+?)\s*\)"),
     ("read", r"\bjoblib\.load\(\s*([^\)]+?)\s*\)"),
     ("read", r"\bopen\(\s*([^,]+?)\s*,"),
-    # Writes
     ("write", r"\bto_csv\(\s*([^\)]+?)\s*\)"),
     ("write", r"\bnp\.savez?\(\s*([^\)]+?)\s*\)"),
     ("write", r"\bjoblib\.dump\(\s*[^,]+,\s*([^\)]+?)\s*\)"),
@@ -34,32 +27,26 @@ IO_PATTERNS = [
     ("write", r"\bjson\.dump\(\s*[^,]+,\s*([^\)]+?)\s*\)"),
 ]
 
-# Find likely absolute paths inside strings (even if not used in I/O call)
 ABSOLUTE_PATH_REGEXES = [
-    re.compile(r"[A-Za-z]:\\[^\"'\s]+"),                 # Windows drive path
-    re.compile(r"\\\\[^\"'\s]+\\[^\"'\s]+"),            # UNC path \\server\share
-    re.compile(r"/user/home/[^\"'\s]+"),                # HPC style
-    re.compile(r"/home/[^\"'\s]+"),                     # Linux home
-    re.compile(r"/mnt/[^\"'\s]+"),                      # Linux mounts
+    re.compile(r"[A-Za-z]:\\[^\"'\s]+"),
+    re.compile(r"\\\\[^\"'\s]+\\[^\"'\s]+"),
+    re.compile(r"/user/home/[^\"'\s]+"),
+    re.compile(r"/home/[^\"'\s]+"),
+    re.compile(r"/mnt/[^\"'\s]+"),
     re.compile(r"OneDrive\s*-\s*University of Bristol", re.IGNORECASE),
 ]
 
 
-# -----------------------------
-# Data structures
-# -----------------------------
 @dataclass
 class IORecord:
     script: str
-    op: str               # read / write
-    raw_target: str       # raw extracted argument text
+    op: str
+    raw_target: str
     lineno: int
-    hint: str             # which pattern matched
-
-    # resolved fields (best-effort)
-    resolved_type: str = "unknown"   # relative / absolute / fstring / expr / unknown
-    resolved_path: str = ""          # best-effort normalized path string
-    exists: Optional[bool] = None    # None if cannot check
+    hint: str
+    resolved_type: str = "unknown"
+    resolved_path: str = ""
+    exists: Optional[bool] = None
 
 
 @dataclass
@@ -72,9 +59,6 @@ class RepoChecks:
     scripts_scanned: int
 
 
-# -----------------------------
-# Helpers
-# -----------------------------
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
@@ -91,48 +75,24 @@ def strip_quotes(s: str) -> str:
 
 
 def classify_and_resolve_target(raw: str, script_dir: Path, repo_root: Path) -> Tuple[str, str, Optional[Path]]:
-    """
-    Try to resolve a raw argument like:
-      r"data/file.csv" or "data/file.csv"
-      DATA_DIR / "x.csv"
-      os.path.join(...)
-
-    We do NOT execute code. Heuristics only:
-    - if it contains '{' or 'f"' -> fstring
-    - if it contains Path ops or join -> expr
-    - if it looks like a quoted string -> maybe resolve relative/absolute
-    """
     r = raw.strip()
-
-    # Cut trailing parameters if present: e.g. to_csv(PATH, index=False)
-    # We only want the first argument expression.
-    # This regex tries to split by comma not inside quotes/brackets (simple heuristic).
-    # If it fails, keep the whole.
     parts = re.split(r",(?![^\(\[\{]*[\)\]\}])", r, maxsplit=1)
     first = parts[0].strip()
 
-    # Detect fstring-ish
     if "f\"" in first or "f'" in first or "{" in first and "}" in first:
         return ("fstring", first, None)
 
-    # If it is a quoted string literal (possibly with r prefix)
     m = re.match(r"^[rubfRUBF]*(['\"])(.*)\1$", first)
     if m:
         s = m.group(2)
-        # Normalize backslashes for checking
         s_norm = s.replace("\\\\", "\\")
-        # Absolute Windows drive?
         if re.match(r"^[A-Za-z]:\\", s_norm) or re.match(r"^[A-Za-z]:/", s_norm):
             return ("absolute", s_norm, None)
-        # Absolute POSIX?
         if s_norm.startswith("/"):
             return ("absolute", s_norm, None)
 
-        # Relative path: resolve against script_dir then repo_root
-        # Prefer repo_root if it looks repo-relative (starts with data/, outputs/, scripts/, etc.)
         as_path = Path(s_norm)
         if not as_path.is_absolute():
-            # if it already begins with common repo folders, interpret as repo-relative
             common_prefixes = ("data/", "data\\", "outputs/", "outputs\\", "scripts/", "scripts\\", "tools/", "tools\\")
             if s_norm.startswith(common_prefixes):
                 cand = (repo_root / as_path).resolve()
@@ -140,7 +100,6 @@ def classify_and_resolve_target(raw: str, script_dir: Path, repo_root: Path) -> 
                 cand = (script_dir / as_path).resolve()
             return ("relative", s_norm, cand)
 
-    # Expression with Path / join / variables
     if any(tok in first for tok in ("/", "Path(", "os.path.join", ".join(", "DATA_DIR", "OUT_DIR", "OUTPUT", "ROOT")):
         return ("expr", first, None)
 
@@ -151,7 +110,6 @@ def find_absolute_paths_in_text(text: str) -> List[str]:
     hits: List[str] = []
     for rgx in ABSOLUTE_PATH_REGEXES:
         hits.extend(rgx.findall(text))
-    # de-dup while keeping order
     seen = set()
     out = []
     for h in hits:
@@ -163,7 +121,6 @@ def find_absolute_paths_in_text(text: str) -> List[str]:
 
 def ensure_outdir(root: Path, outdir: Path) -> None:
     outdir.mkdir(parents=True, exist_ok=True)
-    # helpful git placeholder
     gitkeep = outdir / ".gitkeep"
     if not gitkeep.exists():
         try:
@@ -183,27 +140,21 @@ def check_must_have_files(root: Path) -> Dict[str, bool]:
     return candidates
 
 
-# -----------------------------
-# Main scan
-# -----------------------------
 def scan_repo(root: Path, outdir: Path) -> None:
     scripts = iter_py_files(root)
     io_records: List[IORecord] = []
     abs_hits_rows: List[Dict[str, str]] = []
 
-    # I/O scan
     for sp in scripts:
         rel_script = str(sp.relative_to(root)).replace("\\", "/")
         text = read_text(sp)
         lines = text.splitlines()
         script_dir = sp.parent
 
-        # Absolute path scan (anywhere in file)
         abs_hits = find_absolute_paths_in_text(text)
         for h in abs_hits:
             abs_hits_rows.append({"script": rel_script, "absolute_path_hit": h})
 
-        # IO pattern scan, line by line for lineno
         for lineno, line in enumerate(lines, start=1):
             for op, pat in IO_PATTERNS:
                 m = re.search(pat, line)
@@ -216,7 +167,6 @@ def scan_repo(root: Path, outdir: Path) -> None:
 
                 if rtype == "relative" and cand is not None:
                     exists = cand.exists()
-                    # store as repo-relative when possible
                     try:
                         resolved_path = str(cand.relative_to(root)).replace("\\", "/")
                     except Exception:
@@ -235,9 +185,8 @@ def scan_repo(root: Path, outdir: Path) -> None:
                     )
                 )
 
-    # Summaries
     must_have = check_must_have_files(root)
-    missing_known = [r for r in io_records if r.exists is False]  # only resolvable relative paths
+    missing_known = [r for r in io_records if r.exists is False]
     checks = RepoChecks(
         root=str(root),
         must_have=must_have,
@@ -247,10 +196,8 @@ def scan_repo(root: Path, outdir: Path) -> None:
         scripts_scanned=len(scripts),
     )
 
-    # Write outputs
     ensure_outdir(root, outdir)
 
-    # 1) io_manifest.csv
     io_csv = outdir / "io_manifest.csv"
     with io_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -258,7 +205,6 @@ def scan_repo(root: Path, outdir: Path) -> None:
         for r in io_records:
             w.writerow([r.script, r.op, r.lineno, r.raw_target, r.resolved_type, r.resolved_path, r.exists, r.hint])
 
-    # 2) absolute_paths.csv
     abs_csv = outdir / "absolute_paths.csv"
     with abs_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["script", "absolute_path_hit"])
@@ -266,7 +212,6 @@ def scan_repo(root: Path, outdir: Path) -> None:
         for row in abs_hits_rows:
             w.writerow(row)
 
-    # 3) missing_files.csv (only those we could resolve & check)
     missing_csv = outdir / "missing_files.csv"
     with missing_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -274,7 +219,6 @@ def scan_repo(root: Path, outdir: Path) -> None:
         for r in missing_known:
             w.writerow([r.script, r.op, r.lineno, r.resolved_path])
 
-    # 4) audit_report.json
     report_json = outdir / "audit_report.json"
     report = {
         "checks": asdict(checks),
@@ -285,7 +229,6 @@ def scan_repo(root: Path, outdir: Path) -> None:
     }
     report_json.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Print summary
     print("\n================ Repo Audit Summary ================")
     print(f"Repo root: {root}")
     print(f"Scripts scanned: {checks.scripts_scanned}")
@@ -325,8 +268,8 @@ def scan_repo(root: Path, outdir: Path) -> None:
 
 def main():
     ap = argparse.ArgumentParser(description="Audit a repo for missing files / absolute paths / reproducibility readiness.")
-    ap.add_argument("root", help="Repository root directory to scan (e.g., .)")
-    ap.add_argument("--outdir", default=None, help="Output directory (default: <root>/outputs/audit)")
+    ap.add_argument("root")
+    ap.add_argument("--outdir", default=None)
     args = ap.parse_args()
 
     root = Path(args.root).resolve()

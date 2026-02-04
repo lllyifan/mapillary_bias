@@ -6,9 +6,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHAP_PATH = ROOT / "outputs" / "SHAP" / "IA" / "shap_values_low.npy"
@@ -18,9 +16,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUT_DIR / "fig_5_B_right.pdf"
 OUT_SVG = OUT_DIR / "fig_5_B_right.svg"
 
-# =====================================================
-# Matplotlib style (default font)
-# =====================================================
+# Matplotlib style
 plt.rcParams.update(
     {
         "pdf.fonttype": 42,
@@ -39,9 +35,7 @@ plt.rcParams.update(
     }
 )
 
-# =====================================================
 # Feature short names & colors
-# =====================================================
 feature_map = {
     "indicator_sex_female": "FP",
     "indicator_Ethnic_nonwhite": "NWP",
@@ -55,18 +49,14 @@ short_labels = list(feature_map.values())
 
 color_list = ["#1c1658", "#157673", "#4da6a6", "#82a6cb", "#692168", "#805da4", "#d6c0e0"]
 
-# =====================================================
 # Load data
-# =====================================================
 shap_vals = np.load(SHAP_PATH)
 
 abs_sums = np.abs(shap_vals).sum(axis=0)
 sizes = abs_sums.astype(float).tolist()
 total = float(np.sum(abs_sums)) if len(sizes) else 1.0
 
-# =====================================================
 # Plot donut
-# =====================================================
 fig, ax = plt.subplots(figsize=(6 / 2.54, 7 / 2.54))
 
 wedges, _ = ax.pie(
@@ -84,9 +74,7 @@ ax.add_artist(centre)
 ax.set_title("Total |SHAP| Distribution", fontsize=7, pad=1, color="black")
 ax.axis("equal")
 
-# =====================================================
-# Outside labels (two lines) with simple collision avoidance
-# =====================================================
+# Outside labels with simple collision avoidance
 R_TEXT = 1.28
 R_ARROW = 1.02
 MIN_DY = 0.10
@@ -163,9 +151,7 @@ for it in items:
 ax.set_xlim(-1.55, 1.55)
 ax.set_ylim(-1.45, 1.45)
 
-# =====================================================
 # Save
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 

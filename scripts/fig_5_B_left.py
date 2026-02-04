@@ -11,9 +11,7 @@ import matplotlib.colors as mcolors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.collections import PathCollection
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHAP_PATH = ROOT /  "outputs" / "SHAP" / "IA" / "shap_values_low.npy"
@@ -24,9 +22,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUT_DIR / "fig_5_B_left.pdf"
 OUT_SVG = OUT_DIR / "fig_5_B_left.svg"
 
-# =====================================================
-# Matplotlib style (default font)
-# =====================================================
+# Matplotlib style
 plt.rcParams.update(
     {
         "pdf.fonttype": 42,
@@ -48,9 +44,7 @@ plt.rcParams.update(
     }
 )
 
-# =====================================================
 # Feature short names
-# =====================================================
 feature_map = {
     "indicator_sex_female": "FP",
     "indicator_Ethnic_nonwhite": "NWP",
@@ -61,16 +55,12 @@ feature_map = {
     "indicator_NS-SeC_students": "SP",
 }
 
-# =====================================================
 # Load & rename
-# =====================================================
 shap_vals = np.load(SHAP_PATH)
 X_raw = pd.read_csv(X_PATH)
 X = X_raw[list(feature_map.keys())].rename(columns=feature_map)
 
-# =====================================================
 # Sort features by mean(|SHAP|)
-# =====================================================
 mean_abs = np.abs(shap_vals).mean(axis=0)
 df_imp = (
     pd.DataFrame({"feature": X.columns, "mean_abs_shap": mean_abs})
@@ -83,9 +73,7 @@ order_idx = [X.columns.get_loc(f) for f in sorted_feats]
 shap_vals_sorted = shap_vals[:, order_idx]
 X_sorted = X[sorted_feats]
 
-# =====================================================
-# Colormap (keep your palette)
-# =====================================================
+# Colormap
 custom_cmap = mcolors.LinearSegmentedColormap.from_list(
     "custom_shap_cmap",
     [(0.0, "#7cc0a2"), (0.5, "#FFFFFF"), (1.0, "#9294bb")],
@@ -95,9 +83,7 @@ vmin = float(np.nanmin(X_sorted.values))
 vmax = float(np.nanmax(X_sorted.values))
 norm = plt.Normalize(vmin, vmax)
 
-# =====================================================
 # SHAP beeswarm
-# =====================================================
 expl = shap.Explanation(values=shap_vals_sorted, data=X_sorted.values, feature_names=sorted_feats)
 shap.plots.beeswarm(expl, color=custom_cmap, show=False, plot_size=None)
 
@@ -121,7 +107,7 @@ for coll in main_ax.collections:
         coll.set_linewidths(0.0)
         coll.set_rasterized(False)
 
-# Remove SHAP extra axes (we rebuild our own cbar + bar)
+# Remove SHAP extra axes
 extra_axes = [ax for ax in fig.axes if ax is not main_ax]
 for ax_extra in extra_axes:
     fig.delaxes(ax_extra)

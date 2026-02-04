@@ -12,9 +12,7 @@ from matplotlib.ticker import MaxNLocator
 from libpysal.weights import Queen
 from esda import Moran, Moran_Rate
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHP_PATH = ROOT / "data" / "LSOA_joined_remodeling_with_centroid.shp"
@@ -24,16 +22,12 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUT_DIR / "fig_2_B.pdf"
 OUT_SVG = OUT_DIR / "fig_2_B.svg"
 
-# =====================================================
 # Column names
-# =====================================================
 COL_NUM = "NUM"
 COL_POP = "populati_1"
 COL_AREA = "area"
 
-# =====================================================
-# Style (default Matplotlib font; avoid non-open fonts)
-# =====================================================
+# Style
 plt.rcParams.update(
     {
         "text.color": "black",
@@ -57,16 +51,12 @@ sns.set_style("white")
 cm = 1 / 2.54
 figsize = (16 * cm, 6 * cm)
 
-# =====================================================
 # Load data
-# =====================================================
 gdf = gpd.read_file(SHP_PATH).copy()
 gdf = gdf.dropna(subset=[COL_NUM, COL_POP, COL_AREA]).copy()
 gdf = gdf[(gdf[COL_POP] > 0) & (gdf[COL_AREA] > 0)].copy()
 
-# =====================================================
 # Spatial weights
-# =====================================================
 w = Queen.from_dataframe(gdf, use_index=False)
 w.transform = "r"
 
@@ -81,9 +71,7 @@ def get_z_wz(values: np.ndarray, w):
     wz = w.sparse.dot(z)
     return z, wz
 
-# =====================================================
 # Statistics
-# =====================================================
 y_num = gdf[COL_NUM].astype(float).to_numpy()
 m_num = Moran(y_num, w, permutations=999)
 
@@ -111,9 +99,7 @@ panels = [
     },
 ]
 
-# =====================================================
 # Plot
-# =====================================================
 fig, axes = plt.subplots(1, 3, figsize=figsize, constrained_layout=True)
 
 for ax, panel in zip(axes, panels):
@@ -147,9 +133,7 @@ for ax, panel in zip(axes, panels):
             spine.set_linewidth(0.5)
             spine.set_edgecolor("black")
 
-# =====================================================
 # Save
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 plt.close(fig)

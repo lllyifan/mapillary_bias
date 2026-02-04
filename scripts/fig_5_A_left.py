@@ -11,9 +11,7 @@ import matplotlib.colors as mcolors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.collections import PathCollection
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHAP_PATH = ROOT / "outputs" / "SHAP" / "IP"/ "shap_values_low.npy"
@@ -24,9 +22,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUT_DIR / "fig_5_A_left.pdf"
 OUT_SVG = OUT_DIR / "fig_5_A_left.svg"
 
-# =====================================================
-# Matplotlib style (default font)
-# =====================================================
+# Matplotlib style
 plt.rcParams.update(
     {
         "pdf.fonttype": 42,
@@ -50,9 +46,7 @@ plt.rcParams.update(
     }
 )
 
-# =====================================================
 # Feature name mapping
-# =====================================================
 feature_map = {
     "indicator_sex_female": "FP",
     "indicator_Ethnic_nonwhite": "NWP",
@@ -63,17 +57,13 @@ feature_map = {
     "indicator_NS-SeC_students": "SP",
 }
 
-# =====================================================
 # Load SHAP values and validation features
-# =====================================================
 shap_vals = np.load(SHAP_PATH)
 X_raw = pd.read_csv(X_PATH)
 
 X = X_raw[list(feature_map.keys())].rename(columns=feature_map)
 
-# =====================================================
 # Sort features by mean |SHAP|
-# =====================================================
 mean_abs = np.abs(shap_vals).mean(axis=0)
 df_imp = (
     pd.DataFrame({"feature": X.columns, "mean_abs_shap": mean_abs})
@@ -86,9 +76,7 @@ order_idx = [X.columns.get_loc(f) for f in sorted_feats]
 shap_vals_sorted = shap_vals[:, order_idx]
 X_sorted = X[sorted_feats]
 
-# =====================================================
 # Custom colormap for feature values
-# =====================================================
 custom_cmap = mcolors.LinearSegmentedColormap.from_list(
     "custom_shap_cmap",
     [(0.0, "#7cc0a2"), (0.5, "#FFFFFF"), (1.0, "#9294bb")],
@@ -99,9 +87,7 @@ vmin = float(np.nanmin(X_sorted.values))
 vmax = float(np.nanmax(X_sorted.values))
 norm = plt.Normalize(vmin, vmax)
 
-# =====================================================
 # SHAP beeswarm
-# =====================================================
 expl = shap.Explanation(values=shap_vals_sorted, data=X_sorted.values, feature_names=sorted_feats)
 shap.plots.beeswarm(expl, color=custom_cmap, show=False, plot_size=None)
 
@@ -132,9 +118,7 @@ for ax_extra in extra_axes:
 
 divider = make_axes_locatable(main_ax)
 
-# =====================================================
-# Colorbar (top)
-# =====================================================
+# Colorbar
 CBAR_THICKNESS = "4.5%"
 CBAR_PAD = 0.16
 
@@ -169,9 +153,7 @@ for spine in main_ax.spines.values():
 main_ax.set_xlabel("SHAP value", fontsize=8, labelpad=6, color="black")
 main_ax.tick_params(axis="both", which="major", width=0.5, length=2, labelsize=8, colors="black")
 
-# =====================================================
 # Right-side bar chart: mean |SHAP|
-# =====================================================
 ax_bar = divider.append_axes("right", size="26%", pad=0.30)
 y_pos = np.arange(len(sorted_feats))
 
@@ -208,9 +190,7 @@ ax_bar.spines["bottom"].set_linewidth(0.5)
 ax_bar.spines["left"].set_edgecolor("black")
 ax_bar.spines["bottom"].set_edgecolor("black")
 
-# =====================================================
-# Force all text/spines to black (safety)
-# =====================================================
+# Force all text/spines to black
 def force_all_text_black(fig_):
     for ax_ in fig_.axes:
         ax_.title.set_color("black")
@@ -227,9 +207,7 @@ def force_all_text_black(fig_):
 
 force_all_text_black(fig)
 
-# =====================================================
 # Save
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0, transparent=False)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0, transparent=False)
 

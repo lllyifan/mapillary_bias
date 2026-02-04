@@ -10,27 +10,23 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
-# ---- inputs live under data/ ----
+#inputs live under data
 DATA_DIR = ROOT / "data" / "satscan_input_IP"
 
-# ---- RF artifacts live under out/ ----
+#RF artifacts live under out
 RF_OUT_DIR = ROOT / "outputs" / "RF" / "IP"
 MODEL_PATH = RF_OUT_DIR / "rf_model_ClusterType.joblib"
 VAL_SET_PATH = RF_OUT_DIR / "val_set_ClusterType.csv"
 
-# ---- ICE artifacts live under out/ ----
+#ICE artifacts live under out
 ICE_OUT_DIR = ROOT / "outputs" / "ICE" / "IP"
 OUTPUT_BASE = ICE_OUT_DIR / "ICE_manual_output"
 OUTPUT_BASE.mkdir(parents=True, exist_ok=True)
 
-# =====================================================
 # Settings
-# =====================================================
 FEATURE_COLS = [
     "indicator_sex_female",
     "indicator_Ethnic_nonwhite",
@@ -45,9 +41,7 @@ COORD_COLS = ["LAT", "LONG"]
 GRID_RESOLUTION = 20
 MAX_ICE_CURVES_TO_PLOT = 100
 
-# =====================================================
 # Helpers
-# =====================================================
 def manual_ice(estimator, X: pd.DataFrame, feature: str, target_class: int, grid_resolution: int = 20):
     min_val, max_val = X[feature].min(), X[feature].max()
     grid_values = np.linspace(min_val, max_val, grid_resolution)
@@ -75,9 +69,7 @@ def save_json(obj: dict, path: Path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)
 
-# =====================================================
 # Load model and validation data
-# =====================================================
 if not MODEL_PATH.exists():
     raise FileNotFoundError(f"Missing RF model: {MODEL_PATH}")
 if not VAL_SET_PATH.exists():
@@ -98,9 +90,7 @@ print(f"[READ] model: {MODEL_PATH}")
 print(f"[READ] val_set: {VAL_SET_PATH}")
 print(f"[OUT]  ice_dir: {OUTPUT_BASE}")
 
-# =====================================================
 # Main routine
-# =====================================================
 def process_manual_ice(target_class: int, label: str):
     out_dir = OUTPUT_BASE / label
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -224,9 +214,7 @@ def process_manual_ice(target_class: int, label: str):
 
     print(f"Summary saved:\n- {path_all_slopes_csv}\n- {path_manifest_json}")
 
-# =====================================================
 # Run (keep your original hard-coded class indices)
-# =====================================================
 process_manual_ice(0, "high")
 process_manual_ice(1, "low")
 

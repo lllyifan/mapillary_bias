@@ -8,9 +8,7 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 DATA_DIR = ROOT / "data"
@@ -24,15 +22,11 @@ BOUNDARY_PATH = DATA_DIR / "Regions_December_2021_EN_BFC_2022_-27187645852712174
 OUT_PDF = OUTDIR / "fig_3_B_right.pdf"
 OUT_SVG = OUTDIR / "fig_3_B_right.svg"
 
-# =====================================================
-# Read data (kept for consistency with your workflow)
-# =====================================================
+# Read data
 _ = gpd.read_file(SHP_PATH)
 _ = gpd.read_file(BOUNDARY_PATH)
 
-# =====================================================
 # Parse SaTScan .col.txt
-# =====================================================
 with open(COL_TXT_PATH, "r", encoding="utf-8") as f:
     lines = f.readlines()
 
@@ -55,9 +49,7 @@ df_cluster = pd.DataFrame(cluster_data)
 if df_cluster.empty:
     raise ValueError("Parsed cluster table is empty; check IA.col.txt and parsing rules.")
 
-# =====================================================
 # Build table data (High / Low)
-# =====================================================
 df_cluster["ID"] = df_cluster["ClusterID"].astype(int)
 df_cluster["RR"] = df_cluster["RelativeRisk"].map(lambda x: f"{x:.2f}")
 
@@ -77,9 +69,7 @@ def pad_table(df: pd.DataFrame, n_rows: int) -> pd.DataFrame:
 table_high = pad_table(table_high, max_rows)
 table_low = pad_table(table_low, max_rows)
 
-# =====================================================
 # Plot two tables side-by-side
-# =====================================================
 fig, axes = plt.subplots(1, 2, figsize=(6 / 2.54, 12 / 2.54))
 
 titles = ["High-IA Clusters", "Low-IA Clusters"]
@@ -122,9 +112,7 @@ for ax, df, title in zip(axes, tables, titles):
 
 plt.tight_layout()
 
-# =====================================================
 # Save
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 

@@ -12,9 +12,7 @@ from matplotlib.lines import Line2D
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.transforms import ScaledTranslation
 
-# =====================================================
-# 0) Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHAP_VALUE_PATH = ROOT / "outputs" / "SHAP" / "IP" / "shap_values_low.npy"
@@ -29,9 +27,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUTPUT_DIR / "fig_6_A.pdf"
 OUT_SVG = OUTPUT_DIR / "fig_6_A.svg"
 
-# =====================================================
-# 1) Matplotlib style (default font + all black)
-# =====================================================
+# Matplotlib style
 mpl.rcParams.update(
     {
         "pdf.fonttype": 42,
@@ -54,9 +50,7 @@ mpl.rcParams.update(
     }
 )
 
-# =====================================================
-# 2) Feature mapping
-# =====================================================
+# Feature mapping
 feature_name_map = {
     "indicator_sex_female": "FP",
     "indicator_Ethnic_nonwhite": "NWP",
@@ -68,18 +62,16 @@ feature_name_map = {
 }
 ordered_features = list(feature_name_map.keys())
 
-# =====================================================
-# 3) Lowess fit + bootstrap CI (save intermediates)
-# =====================================================
+# Lowess fit + bootstrap CI 
 N_BOOT = 100
 FRAC = 0.3
 N_XI = 200
 RNG = np.random.default_rng(42)
 
 X_val = pd.read_csv(X_VAL_PATH)
-shap_values_low = np.load(SHAP_VALUE_PATH)  # (n_samples, n_features)
+shap_values_low = np.load(SHAP_VALUE_PATH) 
 
-# Ensure column order matches SHAP columns (assumes same order as in X file)
+
 feature_cols = X_val.columns.tolist()
 
 # Save CI per feature
@@ -107,10 +99,10 @@ for idx, feat in enumerate(feature_cols):
         yb = y[idxs]
         fb = lowess(yb, xb, frac=FRAC, return_sorted=True)
 
-        # np.interp needs ascending x; lowess returns sorted by x, but may have ties
+        
         xfb = fb[:, 0]
         yfb = fb[:, 1]
-        # If all xfb equal (degenerate), fallback constant
+        
         if np.nanmin(xfb) == np.nanmax(xfb):
             y_boot[b] = np.full_like(xi, float(np.nanmean(yfb)))
         else:
@@ -128,9 +120,7 @@ for idx, feat in enumerate(feature_cols):
         upper=upper,
     )
 
-# =====================================================
-# 4) Helper: gradient background
-# =====================================================
+# Helper: gradient background
 purp_rgb = (0x92 / 255, 0x94 / 255, 0xBB / 255)
 green_rgb = (0x7C / 255, 0xC0 / 255, 0xA2 / 255)
 
@@ -153,9 +143,7 @@ def draw_gradient(ax, x_start, x_end, cmap):
     )
 
 
-# =====================================================
-# 5) Helper: place top labels with offset + rotation (avoid overlap)
-# =====================================================
+#  Helper: place top labels with offset + rotation
 def place_top_labels_avoid_overlap(
     ax,
     xs,
@@ -253,9 +241,7 @@ def place_top_labels_avoid_overlap(
     return texts
 
 
-# =====================================================
-# 6) Plot (2x4; last panel legend)
-# =====================================================
+#  Plot 
 cm = 1 / 2.54
 fig, axes = plt.subplots(
     2,
@@ -324,7 +310,7 @@ for idx, feature in enumerate(ordered_features):
         if np.isfinite(tx):
             ax.axvline(float(tx), color="black", linestyle="--", linewidth=0.8, zorder=4)
 
-    # top labels (rotated + offset)
+    # top labels 
     place_top_labels_avoid_overlap(
         ax,
         tipping_xs,
@@ -343,7 +329,7 @@ for idx, feature in enumerate(ordered_features):
     ax.set_xlabel(short, fontsize=8)
     ax.set_ylabel("SHAP", fontsize=8)
 
-    # x ticks: min/mid/max rounded to 0.05
+    # x ticks
     xmin = float(np.nanmin(xi))
     xmax = float(np.nanmax(xi))
     xmid = (xmin + xmax) / 2.0
@@ -365,7 +351,7 @@ for idx, feature in enumerate(ordered_features):
         ax.spines[side].set_linewidth(0.5)
         ax.spines[side].set_color("black")
 
-# Legend panel (last)
+# Legend panel
 legend_ax = axes_flat[-1]
 legend_ax.axis("off")
 legend_elements = [
@@ -378,7 +364,7 @@ legend_ax.legend(handles=legend_elements, loc="center", frameon=False, fontsize=
 
 plt.tight_layout()
 
-# Give a bit more padding to avoid rotated text being clipped
+
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0.1)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0.1)
 plt.close(fig)

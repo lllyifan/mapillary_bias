@@ -8,9 +8,7 @@ import joblib
 import shap
 import matplotlib.pyplot as plt
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 DATA_DIR = ROOT / "outputs" / "RF" / "IA"
@@ -26,9 +24,7 @@ SIGNED_CSV = OUTPUT_DIR / "shap_signed_sum_low.csv"
 MASK_NPY = OUTPUT_DIR / "shap_mask_low.npy"
 ALL_JOBLIB = OUTPUT_DIR / "shap_inter_all.joblib"
 
-# =====================================================
 # Settings
-# =====================================================
 FEATURE_COLS = [
     "indicator_sex_female",
     "indicator_Ethnic_nonwhite",
@@ -42,16 +38,12 @@ FEATURE_COLS = [
 IDX_HIGH = 0
 IDX_LOW = 1
 
-# =====================================================
 # Load model and validation data
-# =====================================================
 clf = joblib.load(MODEL_PATH)
 df_val = pd.read_csv(VAL_CSV)
 X_val = df_val[FEATURE_COLS]
 
-# =====================================================
 # Compute SHAP interaction values
-# =====================================================
 explainer = shap.TreeExplainer(clf)
 shap_inter_all = explainer.shap_interaction_values(X_val)
 
@@ -70,20 +62,14 @@ print(f"X_val.shape = {X_val.shape}")
 print(f"raw interaction shape = {raw.shape} (expect n_samples x n_feat x n_feat)")
 print(f"Interpreting class: low (index={IDX_LOW})")
 
-# =====================================================
 # Signed interaction aggregation
-# =====================================================
 signed_sum = raw.sum(axis=0)
 
-# =====================================================
 # Mask upper triangle and diagonal
-# =====================================================
 n = signed_sum.shape[0]
 mask = np.triu(np.ones((n, n), dtype=bool), k=0)
 
-# =====================================================
 # Plot heatmap
-# =====================================================
 plt.figure(figsize=(8, 6))
 
 diag_mask = np.eye(n, dtype=bool)
@@ -130,9 +116,7 @@ plt.close()
 
 print(f"Low-class heatmap saved to: {OUT_PNG}")
 
-# =====================================================
 # Save outputs
-# =====================================================
 np.save(RAW_NPY, raw)
 pd.DataFrame(
     signed_sum,

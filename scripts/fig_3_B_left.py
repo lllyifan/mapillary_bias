@@ -12,9 +12,7 @@ from shapely.geometry import Point
 from shapely import affinity
 import numpy as np
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 DATA_DIR = ROOT / "data"
@@ -29,9 +27,7 @@ OUT_PDF = OUTDIR / "fig_3_B_left.pdf"
 OUT_SVG = OUTDIR / "fig_3_B_left.svg"
 OUT_TIF = OUTDIR / "fig_3_B_left.tiff"
 
-# =====================================================
 # Settings
-# =====================================================
 FIGSIZE = (10 / 2.54, 12 / 2.54)
 
 LSOA_CODE_COL = "LSOA21CD"
@@ -50,18 +46,14 @@ INSET_MIN_DIST_M = 6000
 
 LABEL_MIN_DIST_M = 0
 
-# =====================================================
 # Read data
-# =====================================================
 gdf = gpd.read_file(SHP_PATH)
 gdf_region = gpd.read_file(BOUNDARY_PATH)
 
 if LSOA_CODE_COL not in gdf.columns:
     raise KeyError(f"Column '{LSOA_CODE_COL}' not found in {SHP_PATH.name}")
 
-# =====================================================
-# Parse SaTScan clusters (.col.txt)
-# =====================================================
+# Parse SaTScan clusters
 with open(COL_TXT_PATH, "r", encoding="utf-8") as f:
     lines = f.readlines()
 
@@ -90,9 +82,7 @@ gdf_cent = gpd.GeoDataFrame(
     crs=gdf.crs,
 )
 
-# =====================================================
-# Radius=0 handling: attach nearest LSOA and equivalent-area radius
-# =====================================================
+
 if gdf.crs != gdf_cent.crs:
     gdf = gdf.to_crs(gdf_cent.crs)
 
@@ -126,9 +116,7 @@ mask0 = df_cluster["Radius_vis"] <= 0
 df_cluster.loc[mask0, "Radius_vis"] = df_cluster.loc[mask0, "equiv_radius_m"]
 df_cluster["Radius_vis"] = df_cluster["Radius_vis"].fillna(2000.0)
 
-# =====================================================
 # Build circle polygons using Radius_vis
-# =====================================================
 def create_circle(x: float, y: float, radius: float, resolution: int = 100):
     return affinity.scale(Point(x, y).buffer(1, resolution=resolution), radius, radius)
 
@@ -138,9 +126,7 @@ df_cluster["geometry"] = df_cluster.apply(
 )
 gdf_cluster = gpd.GeoDataFrame(df_cluster, geometry="geometry", crs=gdf.crs)
 
-# =====================================================
-# Map circle size to label font size (quantile + log)
-# =====================================================
+# Map circle size to label font size
 def fontsize_from_radius(radius_array, fs_min, fs_max, qlo=0.05, qhi=0.95):
     r = np.asarray(radius_array, dtype=float)
     if r.size == 0:
@@ -157,9 +143,7 @@ def fontsize_from_radius(radius_array, fs_min, fs_max, qlo=0.05, qhi=0.95):
 
 df_cluster["fs_main"] = fontsize_from_radius(df_cluster["Radius_vis"].values, FS_MIN_MAIN, FS_MAX_MAIN)
 
-# =====================================================
 # Main map
-# =====================================================
 fig = plt.figure(figsize=FIGSIZE)
 main_ax = fig.add_axes([0.02, 0.02, 0.95, 0.95])
 main_ax.set_facecolor("#f5f5f5")
@@ -178,9 +162,7 @@ gdf_cluster[df_cluster["RelativeRisk"] <= 1].plot(
 main_ax.set_aspect("equal")
 main_ax.axis("off")
 
-# =====================================================
-# Main labels (optional distance pruning)
-# =====================================================
+# Main labels
 df_lab = df_cluster[["ClusterID", "X", "Y", "Radius_vis", "fs_main"]].copy()
 df_lab = df_lab.sort_values(["Radius_vis", "ClusterID"], ascending=[False, True]).reset_index(drop=True)
 
@@ -217,9 +199,7 @@ for _, r in df_lab.iterrows():
     placed_xy.append((x, y))
     kept_main += 1
 
-# =====================================================
-# Inset (focus bbox defined by FOCUS_IDS)
-# =====================================================
+# Inset
 g_focus = gdf_cluster[gdf_cluster["ClusterID"].isin(FOCUS_IDS)].copy()
 if g_focus.empty:
     raise ValueError(f"FOCUS_IDS not found in clusters: {FOCUS_IDS}")
@@ -291,9 +271,7 @@ for _, r in clu_inset.iterrows():
     placed_xy_in.append((x, y))
     kept_inset += 1
 
-# =====================================================
-# Scale bar (main map)
-# =====================================================
+# Scale bar
 x0, x1 = main_ax.get_xlim()
 y0, y1 = main_ax.get_ylim()
 
@@ -314,9 +292,7 @@ main_ax.text(
     zorder=20,
 )
 
-# =====================================================
 # Legend
-# =====================================================
 patch_high = mpatches.Patch(color=COL_HIGH, label="High-IA Clusters (RR > 1)", alpha=0.4)
 patch_low = mpatches.Patch(color=COL_LOW, label="Low-IA Clusters (RR ≤ 1)", alpha=0.4)
 
@@ -331,9 +307,7 @@ main_ax.legend(
     columnspacing=1.5,
 )
 
-# =====================================================
 # Save outputs
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_TIF, dpi=600, format="tiff")

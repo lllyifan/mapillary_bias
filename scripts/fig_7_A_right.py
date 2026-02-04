@@ -16,9 +16,9 @@ import seaborn as sns
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-# =========================================================
-# 0) Paths (relative; repo-friendly)
-# =========================================================
+
+# Paths
+
 ROOT = Path(__file__).resolve().parents[1]
 
 FILE_INTER_RAW = (
@@ -40,9 +40,9 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUT_DIR / "fig_7_A_right.pdf"
 OUT_SVG = OUT_DIR / "fig_7_A_right.svg"
 
-# =========================================================
-# 1) Style: default font + all black
-# =========================================================
+
+# Style
+
 mpl.rcParams.update({
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
@@ -64,12 +64,12 @@ mpl.rcParams.update({
     "ytick.labelsize": 8,
 })
 
-# Keep seaborn minimal (no palette/theme surprises)
+
 sns.set_style("white")
 
-# =========================================================
-# 2) Short-name mapping
-# =========================================================
+
+
+
 feature_name_map = {
     "indicator_sex_female":                "FP",
     "indicator_Ethnic_nonwhite":           "NWP",
@@ -80,9 +80,9 @@ feature_name_map = {
     "indicator_NS-SeC_students":           "SP",
 }
 
-# =========================================================
-# 3) Load data
-# =========================================================
+
+# Load data
+
 interaction_values = np.load(FILE_INTER_RAW)  # (n_samples, n_feat, n_feat)
 
 df_signed = pd.read_csv(FILE_SIGNED, index_col=0)
@@ -91,14 +91,14 @@ cols_long = list(df_signed.columns)  # use this to keep the same order as your m
 short_names = [feature_name_map.get(c, c) for c in cols_long]
 n_feat = interaction_values.shape[1]
 
-# Robust fallback if CSV columns don't match array dimension
+
 if len(short_names) != n_feat:
     fallback = list(feature_name_map.keys())[:n_feat]
     short_names = [feature_name_map.get(c, c) for c in fallback]
 
-# =========================================================
-# 4) Build long table (upper triangle only)
-# =========================================================
+
+# Build long table
+
 records = []
 for i in range(n_feat):
     for j in range(i + 1, n_feat):
@@ -108,12 +108,12 @@ for i in range(n_feat):
 
 df_box = pd.DataFrame(records, columns=["Pair", "SHAP Interaction Value"])
 
-# Optional: keep x-axis order stable (pair order as generated)
+
 pair_order = df_box["Pair"].drop_duplicates().tolist()
 
-# =========================================================
-# 5) Plot (journal size)
-# =========================================================
+
+# Plot
+
 cm = 1 / 2.54
 fig, ax = plt.subplots(figsize=(10 * cm, 8 * cm))
 
@@ -130,10 +130,10 @@ sns.boxplot(
     capprops=dict(color="black", linewidth=0.6),
 )
 
-# Reference line y=0 (keep your red dashed line)
+# Reference line y=0
 ax.axhline(0.0, color="red", linestyle="--", linewidth=1.0, zorder=0)
 
-# Titles/labels (default font, black)
+# Titles/labels
 ax.set_title(
     "Distribution of SHAP Interactions Across Variable Pairs",
     fontsize=8, color="black", pad=4
@@ -159,9 +159,9 @@ ax.spines["bottom"].set_edgecolor("black")
 
 plt.tight_layout()
 
-# =========================================================
-# 6) Save: PDF + SVG
-# =========================================================
+
+# Save
+
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 

@@ -9,9 +9,8 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Rectangle
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHP_PATH = ROOT / "data" / "LSOA_joined_remodeling.shp"
@@ -25,9 +24,7 @@ OUTDIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUTDIR / "fig_2_A.pdf"
 OUT_SVG = OUTDIR / "fig_2_A.svg"
 
-# =====================================================
 # Settings (default Matplotlib font; no external fonts)
-# =====================================================
 RENAME_CITY = {
     "Bristol, City of": "Bristol",
     "City of London": "London",
@@ -58,9 +55,7 @@ OFFSETS = {
     "Wales": (-8000, -18000),
 }
 
-# =====================================================
 # Load data
-# =====================================================
 gdf = gpd.read_file(SHP_PATH, encoding="ISO-8859-1").to_crs(epsg=27700)
 gdf_boundary = gpd.read_file(BOUNDARY_PATH).to_crs(epsg=27700)
 gdf_city = gpd.read_file(CITY_PATH).to_crs(epsg=27700)
@@ -88,9 +83,7 @@ lon_pt = gdf_city.loc[gdf_city["label_name"] == "London"].geometry.iloc[0]
 cx, cy = lon_pt.x, lon_pt.y
 LONDON_BBOX = (cx - 35000, cy - 30000, cx + 35000, cy + 30000)
 
-# =====================================================
 # Layout
-# =====================================================
 fig, axes = plt.subplots(
     3,
     3,
@@ -106,9 +99,7 @@ fig.subplots_adjust(
     hspace=0.00,
 )
 
-# =====================================================
 # Plot
-# =====================================================
 for i, (value_col, legend_title) in enumerate(VARIABLES):
     ax, axins, axleg = axes[0, i], axes[1, i], axes[2, i]
     axleg.axis("off")
@@ -211,9 +202,7 @@ for i, (value_col, legend_title) in enumerate(VARIABLES):
         fontsize=8,
     )
 
-# =====================================================
-# Position adjustments (kept as-is)
-# =====================================================
+# Position adjustments
 MOVE_UP_INSET = 0.090
 MOVE_UP_LEG = 0.070
 for i in range(3):
@@ -221,9 +210,7 @@ for i in range(3):
         p = ax_.get_position()
         ax_.set_position([p.x0, p.y0 + move, p.width, p.height])
 
-# =====================================================
 # Save
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight")
 fig.savefig(OUT_SVG, bbox_inches="tight")
 plt.show()

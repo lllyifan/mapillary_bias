@@ -12,9 +12,7 @@ from matplotlib.lines import Line2D
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.transforms import ScaledTranslation
 
-# =====================================================
-# 0) Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 SHAP_VALUE_PATH = ROOT / "outputs" / "SHAP" / "IA" / "shap_values_low.npy"
@@ -25,12 +23,11 @@ OUTPUT_DIR      = ROOT / "outputs" / "figures"
 LOWESS_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+# Outputs
 OUT_PDF = OUTPUT_DIR / "fig_6_B.pdf"
 OUT_SVG = OUTPUT_DIR / "fig_6_B.svg"
 
-# =====================================================
-# 1) Matplotlib style (default font + all black)
-# =====================================================
+# Matplotlib style
 mpl.rcParams.update(
     {
         "pdf.fonttype": 42,
@@ -53,9 +50,7 @@ mpl.rcParams.update(
     }
 )
 
-# =====================================================
-# 2) Feature mapping
-# =====================================================
+# Feature mapping
 feature_name_map = {
     "indicator_sex_female": "FP",
     "indicator_Ethnic_nonwhite": "NWP",
@@ -67,35 +62,34 @@ feature_name_map = {
 }
 ordered_features = list(feature_name_map.keys())
 
-# =====================================================
-# 3) Lowess fit + bootstrap CI (save intermediates)
-# =====================================================
+# Lowess fit + bootstrap CI 
 N_BOOT = 100
 FRAC = 0.3
 N_XI = 200
 RNG = np.random.default_rng(42)
 
 X_val = pd.read_csv(X_VAL_PATH)
-shap_values_low = np.load(SHAP_VALUE_PATH)  # (n_samples, n_features)
+shap_values_low = np.load(SHAP_VALUE_PATH) 
 
-# We assume shap_values columns align with X file columns
+
 feature_cols = X_val.columns.tolist()
 
+# Save CI per feature
 for idx, feat in enumerate(feature_cols):
     x = X_val[feat].to_numpy(dtype=float)
     y = shap_values_low[:, idx].astype(float)
 
-    # xi grid
+    # Guard: constant x
     if np.nanmin(x) == np.nanmax(x):
         xi = np.linspace(np.nanmin(x), np.nanmax(x) + 1e-9, N_XI)
     else:
         xi = np.linspace(np.nanmin(x), np.nanmax(x), N_XI)
 
-    # full lowess
+    # Lowess on full data
     fitted = lowess(y, x, frac=FRAC, return_sorted=True)
     x_fit, y_fit = fitted[:, 0], fitted[:, 1]
 
-    # bootstrap CI on xi
+    # Bootstrap CI on xi grid
     y_boot = np.zeros((N_BOOT, len(xi)), dtype=float)
     n = len(x)
 
@@ -105,8 +99,10 @@ for idx, feat in enumerate(feature_cols):
         yb = y[idxs]
         fb = lowess(yb, xb, frac=FRAC, return_sorted=True)
 
+        
         xfb = fb[:, 0]
         yfb = fb[:, 1]
+        
         if np.nanmin(xfb) == np.nanmax(xfb):
             y_boot[b] = np.full_like(xi, float(np.nanmean(yfb)))
         else:
@@ -124,9 +120,7 @@ for idx, feat in enumerate(feature_cols):
         upper=upper,
     )
 
-# =====================================================
-# 4) Helper: gradient background
-# =====================================================
+# Helper: gradient background
 purp_rgb = (0x92 / 255, 0x94 / 255, 0xBB / 255)
 green_rgb = (0x7C / 255, 0xC0 / 255, 0xA2 / 255)
 
@@ -148,9 +142,8 @@ def draw_gradient(ax, x_start, x_end, cmap):
         zorder=0,
     )
 
-# =====================================================
-# 5) Helper: place top labels with offset + rotation (avoid overlap)
-# =====================================================
+
+#  Helper: place top labels with offset + rotation
 def place_top_labels_avoid_overlap(
     ax,
     xs,
@@ -164,8 +157,9 @@ def place_top_labels_avoid_overlap(
     rotation=45,
 ):
     """
-    Place top labels at y=y_axes in axis coords.
-    If overlaps (after rotation), shift left/right in points until no overlap.
+    Place top labels at y=y_axes in axis coordinates.
+    If overlaps, shift left/right in points until no overlap.
+    Rotation is applied (default 45 degrees).
     """
     fig = ax.figure
     fig.canvas.draw()
@@ -220,6 +214,7 @@ def place_top_labels_avoid_overlap(
             t.remove()
 
         if chosen_text is None:
+            # last resort: far offset
             dx_pts = max_k * step_pts
             dx_in = dx_pts / 72.0
             offset_tr = base_tr + ScaledTranslation(dx_in, 0, fig.dpi_scale_trans)
@@ -245,9 +240,8 @@ def place_top_labels_avoid_overlap(
 
     return texts
 
-# =====================================================
-# 6) Plot (2x4; last panel legend)
-# =====================================================
+
+#  Plot 
 cm = 1 / 2.54
 fig, axes = plt.subplots(
     2,
@@ -259,24 +253,21 @@ fig, axes = plt.subplots(
 axes_flat = axes.flatten()
 rng = np.random.default_rng(42)
 
-# Read again for plotting
-df_X = pd.read_csv(X_VAL_PATH)
-shap_arr = np.load(SHAP_VALUE_PATH)
-
-# Ensure we use the same feature order as plotting map
 for idx, feature in enumerate(ordered_features):
     ax = axes_flat[idx]
 
-    x_all = df_X[feature].to_numpy(dtype=float)
-    y_all = shap_arr[:, feature_cols.index(feature)].astype(float)
+    # data
+    x_all = X_val[feature].to_numpy(dtype=float)
+    y_all = shap_values_low[:, feature_cols.index(feature)].astype(float)
 
+    # load lowess+ci
     data = np.load(LOWESS_DIR / f"lowess_{feature}_ci.npz")
     xi = data["xi"]
     lower = data["lower"]
     upper = data["upper"]
     y_line = (lower + upper) / 2.0
 
-    # tipping points
+    # tipping points: sign changes of y_line
     sign = np.sign(y_line)
     zero_idx = np.where(np.diff(sign) != 0)[0]
     tipping_xs = (xi[zero_idx] + xi[zero_idx + 1]) / 2.0
@@ -288,16 +279,17 @@ for idx, feature in enumerate(ordered_features):
     y0, y1 = local_min - pad, local_max + pad
     ax.set_ylim(y0, y1)
 
-    # gradient segments
+    # gradient background alternating by segments
     segments = np.concatenate(([float(np.nanmin(xi))], tipping_xs, [float(np.nanmax(xi))]))
     segments = np.sort(np.unique(segments))
     for j in range(len(segments) - 1):
         cmap = purp_cmap if (j % 2 == 0) else green_cmap
         draw_gradient(ax, segments[j], segments[j + 1], cmap)
 
+    # baseline
     ax.axhline(0, color="#4D4D4D", linestyle="--", linewidth=0.8)
 
-    # scatter
+    # scatter (subsample)
     n_samp = min(1000, len(x_all))
     sel = rng.choice(len(x_all), size=n_samp, replace=False)
     ax.scatter(
@@ -310,15 +302,15 @@ for idx, feature in enumerate(ordered_features):
         zorder=2,
     )
 
-    # lowess line (mid-CI)
+    # lowess line
     ax.plot(xi, y_line, color="red", linewidth=1.0, zorder=3)
 
-    # tipping lines
+    # tipping vertical lines
     for tx in np.array(tipping_xs, dtype=float):
         if np.isfinite(tx):
             ax.axvline(float(tx), color="black", linestyle="--", linewidth=0.8, zorder=4)
 
-    # top labels (rotated + offset)
+    # top labels 
     place_top_labels_avoid_overlap(
         ax,
         tipping_xs,
@@ -337,7 +329,7 @@ for idx, feature in enumerate(ordered_features):
     ax.set_xlabel(short, fontsize=8)
     ax.set_ylabel("SHAP", fontsize=8)
 
-    # x ticks: min/mid/max rounded to 0.05
+    # x ticks
     xmin = float(np.nanmin(xi))
     xmax = float(np.nanmax(xi))
     xmid = (xmin + xmax) / 2.0
@@ -354,6 +346,7 @@ for idx, feature in enumerate(ordered_features):
     ax.set_yticklabels([f"{v:.2f}" for v in yt])
     ax.tick_params(axis="y", width=0.5, length=2, colors="black")
 
+    # spines
     for side in ["top", "right", "bottom", "left"]:
         ax.spines[side].set_linewidth(0.5)
         ax.spines[side].set_color("black")
@@ -370,6 +363,8 @@ legend_elements = [
 legend_ax.legend(handles=legend_elements, loc="center", frameon=False, fontsize=8)
 
 plt.tight_layout()
+
+
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0.1)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0.1)
 plt.close(fig)

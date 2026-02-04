@@ -10,9 +10,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, Optional, Tuple, Any
 
-# ---------------------------------------------
-# Config: what counts as a "file-like" path
-# ---------------------------------------------
+
 FILE_SUFFIX_RE = re.compile(
     r".*\.(csv|tsv|parquet|feather|pkl|pickle|joblib|json|geojson|shp|gpkg|tif|tiff|png|jpg|jpeg|pdf|txt|md|npz|npy|xlsx)$",
     re.I,
@@ -22,41 +20,32 @@ def looks_like_file(s: str) -> bool:
     s = s.strip().strip("'\"")
     if FILE_SUFFIX_RE.match(s):
         return True
-    # also allow patterns containing common extensions even if has {var}
     lowered = s.lower()
     return any(ext in lowered for ext in [
         ".csv", ".parquet", ".png", ".pdf", ".pkl", ".json", ".shp", ".tif", ".xlsx", ".npz", ".npy"
     ])
 
-# ---------------------------------------------
-# IO Records
-# ---------------------------------------------
+
 @dataclass
 class IORecord:
     script: str
-    op: str          # read/write
-    target: str      # resolved-ish path expression
+    op: str
+    target: str
     lineno: int
     hint: str
 
-# ---------------------------------------------
-# Module environment: constants + import mapping
-# ---------------------------------------------
+
 @dataclass
 class ModuleEnv:
-    # name -> resolved string expression (e.g., "outputs", "/abs/path", "OUT_DIR/fig2.png")
     consts: Dict[str, str]
-    # alias -> module_path (for "import x as y")
     imports: Dict[str, str]
-    # name -> (module_path, original_name) for "from x import A as B"
     from_imports: Dict[str, Tuple[str, str]]
 
-# ---------------------------------------------
-# 1) Parse modules and collect "constants"
-# ---------------------------------------------
+
 def module_name_from_path(root: Path, file_path: Path) -> str:
     rel = file_path.relative_to(root).with_suffix("")
     return ".".join(rel.parts)
+
 
 def load_all_modules(root: Path) -> Dict[str, Path]:
     mods = {}
@@ -68,41 +57,31 @@ def load_all_modules(root: Path) -> Dict[str, Path]:
         mods[module_name_from_path(root, p)] = p
     return mods
 
+
 def safe_read_text(p: Path) -> str:
     return p.read_text(encoding="utf-8", errors="ignore")
 
+
 def is_path_ctor_call(node: ast.AST) -> bool:
-    # Path("x") / PurePath("x")
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
         return node.func.id in {"Path", "PurePath"}
     return False
+
 
 def join_expr(a: str, b: str) -> str:
     if not a:
         return b
     if not b:
         return a
-    # keep as path-like expression with /
     return f"{a}/{b}"
 
+
 def expr_to_str(node: ast.AST, env: ModuleEnv, resolver: "Resolver") -> Optional[str]:
-    """
-    Best-effort resolve expression to a readable string.
-    - literals
-    - f-strings => keep constants + "{...}"
-    - Name => env.consts or imported const if resolvable
-    - Attribute => module.attr if module is imported alias and attr resolvable
-    - BinOp: + for strings, / for path join
-    - os.path.join(...)
-    - Path("a") => "a"
-    """
-    # literal string
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         return node.value
     if isinstance(node, ast.Str):
         return node.s
 
-    # f-string
     if isinstance(node, ast.JoinedStr):
         parts = []
         for v in node.values:
@@ -114,12 +93,10 @@ def expr_to_str(node: ast.AST, env: ModuleEnv, resolver: "Resolver") -> Optional
                 parts.append("{...}")
         return "".join(parts)
 
-    # Name
     if isinstance(node, ast.Name):
         name = node.id
         if name in env.consts:
             return env.consts[name]
-        # from-import constant?
         if name in env.from_imports:
             mod, orig = env.from_imports[name]
             resolved = resolver.resolve_imported_constant(mod, orig)
@@ -127,44 +104,35 @@ def expr_to_str(node: ast.AST, env: ModuleEnv, resolver: "Resolver") -> Optional
                 return resolved
         return None
 
-    # Attribute: e.g., paths.OUT_DIR or cfg.OUTDIR
     if isinstance(node, ast.Attribute):
-        # module alias?
         if isinstance(node.value, ast.Name):
             base = node.value.id
             attr = node.attr
-            # imported module alias
             if base in env.imports:
                 mod = env.imports[base]
                 resolved = resolver.resolve_imported_constant(mod, attr)
                 if resolved:
                     return resolved
-                # fallback to "mod.attr"
                 return f"{mod}.{attr}"
-        # could be nested Attribute; too hard
         return None
 
-    # Path("a")
     if is_path_ctor_call(node):
         if node.args:
             inner = expr_to_str(node.args[0], env, resolver)
             return inner
         return None
 
-    # "a" + "b"
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
         l = expr_to_str(node.left, env, resolver)
         r = expr_to_str(node.right, env, resolver)
         if l is not None and r is not None:
             return l + r
-        # salvage file-like side
         if r and looks_like_file(r):
             return r
         if l and looks_like_file(l):
             return l
         return None
 
-    # Path join: a / b
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
         l = expr_to_str(node.left, env, resolver)
         r = expr_to_str(node.right, env, resolver)
@@ -174,7 +142,6 @@ def expr_to_str(node: ast.AST, env: ModuleEnv, resolver: "Resolver") -> Optional
             return r
         return None
 
-    # os.path.join(...)
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
         if node.func.attr == "join" and isinstance(node.func.value, ast.Attribute):
             if node.func.value.attr == "path" and isinstance(node.func.value.value, ast.Name):
@@ -194,14 +161,8 @@ def expr_to_str(node: ast.AST, env: ModuleEnv, resolver: "Resolver") -> Optional
 
     return None
 
+
 class ConstCollector(ast.NodeVisitor):
-    """
-    Collect simple constant assignments:
-      X = "..."
-      X = Path("...") / "..."
-      X = OUT_DIR / f"..."
-    plus import aliases.
-    """
     def __init__(self, env: ModuleEnv, resolver: "Resolver"):
         self.env = env
         self.resolver = resolver
@@ -222,14 +183,12 @@ class ConstCollector(ast.NodeVisitor):
             self.env.from_imports[asname] = (mod, orig)
 
     def visit_Assign(self, node: ast.Assign):
-        # only handle simple Name targets
         if len(node.targets) != 1:
             return
         tgt = node.targets[0]
         if not isinstance(tgt, ast.Name):
             return
         name = tgt.id
-
         val = expr_to_str(node.value, self.env, self.resolver)
         if val is not None:
             self.env.consts[name] = val
@@ -241,9 +200,7 @@ class ConstCollector(ast.NodeVisitor):
             if val is not None:
                 self.env.consts[name] = val
 
-# ---------------------------------------------
-# Resolver: cross-module constant resolving
-# ---------------------------------------------
+
 class Resolver:
     def __init__(self, root: Path, modules: Dict[str, Path]):
         self.root = root
@@ -256,7 +213,6 @@ class Resolver:
             return self.env_cache[mod]
         env = ModuleEnv(consts={}, imports={}, from_imports={})
         self.env_cache[mod] = env
-
         p = self.modules.get(mod)
         if not p:
             return env
@@ -264,7 +220,6 @@ class Resolver:
             tree = ast.parse(safe_read_text(p))
         except SyntaxError:
             return env
-
         self.ast_cache[mod] = tree
         ConstCollector(env, self).visit(tree)
         return env
@@ -273,40 +228,23 @@ class Resolver:
         env = self.get_env(mod)
         if name in env.consts:
             return env.consts[name]
-        # if that constant itself is imported, recurse a bit
         if name in env.from_imports:
             mod2, orig2 = env.from_imports[name]
             return self.resolve_imported_constant(mod2, orig2)
         return None
 
-# ---------------------------------------------
-# 2) Scan for IO calls using resolved expressions
-# ---------------------------------------------
+
 READ_ATTRS = {
-    # pandas
-    "read_csv", "read_table", "read_parquet", "read_feather", "read_pickle", "read_json", "read_excel",
-    # geopandas
-    "read_file",
-    # numpy / joblib
-    "load",
-    # rasterio
-    "open",
+    "read_csv", "read_table", "read_parquet", "read_feather", "read_pickle",
+    "read_json", "read_excel", "read_file", "load", "open",
 }
 WRITE_ATTRS = {
-    # pandas
     "to_csv", "to_parquet", "to_feather", "to_pickle", "to_json", "to_excel",
-    # geopandas
-    "to_file",
-    # numpy
-    "save", "savez", "savez_compressed",
-    # joblib
-    "dump",
-    # matplotlib
-    "savefig",
-    # pathlib
+    "to_file", "save", "savez", "savez_compressed", "dump", "savefig",
     "write_text", "write_bytes",
 }
 READ_METHOD_ATTRS = {"read_text", "read_bytes"}
+
 
 def first_path_arg(call: ast.Call) -> Optional[ast.AST]:
     if call.args:
@@ -315,6 +253,7 @@ def first_path_arg(call: ast.Call) -> Optional[ast.AST]:
         if kw.arg in {"path", "filepath", "fname", "filename", "file", "path_or_buf"}:
             return kw.value
     return None
+
 
 class IOScanner(ast.NodeVisitor):
     def __init__(self, mod: str, script_rel: Path, env: ModuleEnv, resolver: Resolver):
@@ -329,7 +268,6 @@ class IOScanner(ast.NodeVisitor):
             self.records.append(IORecord(str(self.script_rel), op, target, lineno, hint))
 
     def visit_Call(self, node: ast.Call):
-        # open(...)
         if isinstance(node.func, ast.Name) and node.func.id == "open":
             arg = first_path_arg(node)
             if arg is not None:
@@ -346,11 +284,9 @@ class IOScanner(ast.NodeVisitor):
                         op = "write"
                     self.add(op, path, node.lineno, "open()")
 
-        # attribute call: X.read_csv / df.to_csv / fig.savefig / joblib.dump etc.
         if isinstance(node.func, ast.Attribute):
             attr = node.func.attr
 
-            # any .savefig(...) (covers plt.savefig, fig.savefig, ax.figure.savefig)
             if attr == "savefig":
                 arg = first_path_arg(node)
                 if arg is not None:
@@ -358,7 +294,6 @@ class IOScanner(ast.NodeVisitor):
                     if path:
                         self.add("write", path, node.lineno, ".savefig()")
 
-            # reads
             if attr in READ_ATTRS:
                 arg = first_path_arg(node)
                 if arg is not None:
@@ -366,9 +301,7 @@ class IOScanner(ast.NodeVisitor):
                     if path:
                         self.add("read", path, node.lineno, f".{attr}()")
 
-            # writes
             if attr in WRITE_ATTRS:
-                # special case: joblib.dump(obj, path) where path is 2nd arg
                 if attr == "dump" and len(node.args) >= 2:
                     path = expr_to_str(node.args[1], self.env, self.resolver)
                     if path:
@@ -380,13 +313,11 @@ class IOScanner(ast.NodeVisitor):
                         if path:
                             self.add("write", path, node.lineno, f".{attr}()")
 
-            # Path(...).read_text() / read_bytes()
             if attr in READ_METHOD_ATTRS:
                 recv = expr_to_str(node.func.value, self.env, self.resolver)
                 if recv:
                     self.add("read", recv, node.lineno, f".{attr}()")
 
-        # direct name calls: dump/load imported directly
         if isinstance(node.func, ast.Name) and node.func.id in {"dump", "load"}:
             if node.func.id == "dump" and len(node.args) >= 2:
                 path = expr_to_str(node.args[1], self.env, self.resolver)
@@ -399,12 +330,10 @@ class IOScanner(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-# ---------------------------------------------
-# main
-# ---------------------------------------------
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("root", help="project root directory")
+    ap.add_argument("root")
     ap.add_argument("--outdir", default="_io_report")
     args = ap.parse_args()
 
@@ -428,7 +357,6 @@ def main():
         sc.visit(tree)
         all_records.extend(sc.records)
 
-    # write csv
     csv_path = outdir / "io_manifest.csv"
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["script", "op", "target", "lineno", "hint"])
@@ -436,7 +364,6 @@ def main():
         for r in all_records:
             w.writerow(asdict(r))
 
-    # write md
     md_path = outdir / "io_manifest.md"
     by_script: Dict[str, list[IORecord]] = {}
     for r in all_records:
@@ -458,6 +385,7 @@ def main():
 
     print(f"[OK] Wrote: {csv_path}")
     print(f"[OK] Wrote: {md_path}")
+
 
 if __name__ == "__main__":
     main()

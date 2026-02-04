@@ -6,9 +6,7 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# =====================================================
-# Paths (relative to repository root)
-# =====================================================
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 
 CSV_PATH = ROOT / "outputs" / "OCI" / "IP" / "OCI_results.csv"
@@ -18,9 +16,7 @@ OUTDIR.mkdir(parents=True, exist_ok=True)
 OUT_PDF = OUTDIR / "fig_4_A.pdf"
 OUT_SVG = OUTDIR / "fig_4_A.svg"
 
-# =====================================================
 # Read data
-# =====================================================
 df = pd.read_csv(CSV_PATH)
 
 required = {"Group", "OCI"}
@@ -48,9 +44,7 @@ COL_HIGH = "#9294BB"
 COL_LOW = "#7CC0A2"
 df["Color"] = df["OCI"].apply(lambda x: COL_HIGH if x > 1 else COL_LOW)
 
-# =====================================================
 # Plot
-# =====================================================
 cm = 1 / 2.54
 fig, ax = plt.subplots(figsize=(8 * cm, 8 * cm))
 
@@ -98,9 +92,7 @@ ax.invert_yaxis()
 
 plt.tight_layout()
 
-# =====================================================
 # Save
-# =====================================================
 fig.savefig(OUT_PDF, bbox_inches="tight", pad_inches=0)
 fig.savefig(OUT_SVG, bbox_inches="tight", pad_inches=0)
 

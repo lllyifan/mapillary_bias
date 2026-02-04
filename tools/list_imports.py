@@ -13,7 +13,7 @@ for f in SCRIPTS:
         if m:
             imports.add(m.group(1))
 
-# common stdlib to ignore
+
 stdlib = {
     "os","sys","re","math","json","time","datetime","pathlib",
     "itertools","functools","collections","subprocess","warnings",

@@ -5,7 +5,7 @@ import csv
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = ROOT / "scripts"
 
-# 常见“绝对路径/硬编码路径”模式（Windows + Linux + OneDrive）
+
 PATTERNS = [
     r"[A-Za-z]:\\[^\"'\n]+",          # C:\...
     r"[A-Za-z]:/[^\"'\n]+",           # C:/...
